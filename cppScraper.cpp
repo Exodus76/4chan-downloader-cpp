@@ -66,7 +66,7 @@ int main(int argc, char** argv)
 
 }
 
-
+//Download function but in c
 //i.4cdn.org/[board]/[4chan image ID].[file extension]
 
 /*
