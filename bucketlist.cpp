@@ -51,10 +51,7 @@ BucketList::BucketList(const BucketList& other) {
 	// IMPLEMENT ME
     size_ = other.size_;
     cap_ = other.cap_;
-    buckets_ = new Node*[cap_];
-    for (int i = 0; i < size_ ;i++) {
-        buckets_[i] = other.buckets_[i];
-    }
+    buckets_ = new Node*[cap_]();
 }
 
 //other is the one we are copying from
@@ -62,22 +59,20 @@ BucketList& BucketList::operator=(const BucketList& other) {
 	// IMPLEMENT ME
     cout << "copy assignment called " << endl;
     if (this != &other) {
-        delete [] buckets_;
+        // delete [] buckets_;
         this->~BucketList();
-        buckets_ = new Node*[cap_];
-        for (int i = 0; i < cap_; i++) {
+        buckets_ = new Node*[other.cap_]();
+        cout << "creation of a new bucket with cap " << other.cap_ << endl;
+        for (int i = 0; i < other.cap_; i++) {
             Node* temp = other.buckets_[i];
             while (temp != nullptr) {
-                string allo = temp->s_;
-                cout << "inserting " << allo << endl;
-                this->insert(allo);
+                this->insert(temp->s_);
                 temp = temp->next_;
             }
         }
     }
-    size_ = other.size_;
-    cap_ = other.cap_;
-    cout << "capacity is " << cap_ << "with size " << size_ << endl;
+    // size_ = other.size_;
+    // cap_ = other.cap_;
 	return *this;
 }
 
@@ -107,11 +102,10 @@ void BucketList::insert(const string& s) {
         loc = loc % getCap();
         Node* newString = new Node;
         Node* prev = buckets_[loc];
-        // if ((double)getSize()/getCap() == MAX_LOAD_FACTOR) {
-        // 	cap_ = cap_ * 2;
-        //     //(s);
-        // }
-        // cout << "just before" << endl;
+        if ((double)getSize()/getCap() == MAX_LOAD_FACTOR) {
+        	cap_ = cap_ * 2;
+            //(s);
+        }
         if (prev == nullptr) {
             newString->s_ = s;
             newString->next_ = nullptr;
