@@ -2,10 +2,25 @@
 #include <iostream>
 #include <regex>
 #include <filesystem>
+#include <future>
+#include <mutex>
 
 #include <cpr/cpr.h>
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
+
+std::string osinfo()
+{
+    #ifdef _WIN32
+    return "\\";
+    #elif _WIN64
+    return "\\";
+    #elif __linux__
+    return "/";
+    #else
+    return "\\"; //default to wangblows
+    #endif
+}
 
 using json = nlohmann::json;
 namespace fs = std::filesystem;
@@ -16,8 +31,7 @@ int main(int argc, char** argv)
     {
         std::cout << "No link passed";
         return 0;
-    };
-
+    }
     std::string link = argv[1];
 
     std::regex cdn("boards.4chan.org|boards.4channel.org");
@@ -28,7 +42,7 @@ int main(int argc, char** argv)
     std::regex_search(main_link, m, board);
     std::string board_name = m[1];
     std::string thread_id = m[2];
-
+    
     if (fs::exists(thread_id))
     {
         std::cout << "folder named " << thread_id << " already exists" << std::endl;
@@ -47,6 +61,9 @@ int main(int argc, char** argv)
     std::string fname, tim, ext, image_url = "https://i.4cdn.org/" + board_name;
 
     std::cout << "downloading " << total_replies << " files" << std::endl;
+    
+    std::string prepend = osinfo();
+
     for (int i = 1; i <= total_replies; ++i)
     {
         if (json_content["posts"][i].contains("tim"))
@@ -55,10 +72,8 @@ int main(int argc, char** argv)
             tim = json_content["posts"][i]["tim"].dump();
             ext = json_content["posts"][i]["ext"];
 
-            auto ofstream = std::ofstream(thread_id + "\\" + fname + ext, std::ios::binary);
-            session.SetUrl(cpr::Url{ image_url + "/" + tim + ext });
-            auto response = session.Download(ofstream);
-            ofstream.close();
+            cpr::Url url{image_url + "/" + tim + ext};
+            auto response = cpr::DownloadAsync( thread_id + prepend + fname + ext, url);
         }
     }
     
